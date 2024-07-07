@@ -24,7 +24,7 @@ app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
 app.use(bp.json());
 app.use(multer({
     storage: multerConfig.fileStorage, fileFilter: multerConfig.fileFilter
-}).single('image'));
+}).array('images'));
 app.use('/images', express.static(path.join(__dirname, 'images')));
 app.use(cors());
 
