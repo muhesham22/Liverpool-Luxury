@@ -28,12 +28,10 @@ const userSchema = new mongoose.Schema({
         default: 'customer'
     },
     passport: {
-        type: String,
-        required: true
+        type: String
     },
     license: {
-        type: String,
-        required: true
+        type: String
     },
     bookings: [bookingSchema] // Correctly reference the bookingSchema
 },

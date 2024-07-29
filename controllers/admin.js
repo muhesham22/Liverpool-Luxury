@@ -8,10 +8,10 @@ const { validationResult } = require('express-validator')
 exports.PostCar = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        clearImage(req.file.path.replace("\\", "/"));
+        clearImage(req.files.path.replace("\\", "/"));
         return res.status(422).json({ error: errors.array()[0].msg });
     }
-    if (!req.file) {
+    if (!req.files) {
         return res.status(422).json({ error: 'Image is required' });
     }
     try {
@@ -27,7 +27,7 @@ exports.PostCar = async (req, res) => {
             seats
         } = req.body;
         const car = new Car({
-            images: req.file.path.replace('\\', "/"),
+            images: req.files.path.replace('\\', "/"),
             name,
             year,
             brand,

@@ -13,9 +13,9 @@ exports.register = async (req, res) => {
             return res.status(422).json({ error: errors.array()[0].msg });
         }
         const { name, email, password, phone } = req.body;
-        const image = req.file.path.replace("\\", "/");
-        const passport = req.file.path.replace("\\", "/");
-        const license = req.file.path.replace("\\", "/");
+        // const image = req.files.path.replace("\\", "/");
+        // const passport = req.files.path.replace("\\", "/");
+        // const license = req.files.path.replace("\\", "/");
         if (!req.body.role) {
             req.body.role = 'customer';
         }
@@ -143,3 +143,4 @@ exports.resetPassword = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+
