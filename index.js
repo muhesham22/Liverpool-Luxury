@@ -11,12 +11,10 @@ require('dotenv').config();
 
 
 //requiring routes
-//
-//
-//
+const adminroutes = require('./routes/admin')
 
 
-const multerConfig = require('./configurations/multer');
+const multerConfig = require('./config/multer');
 
 const app = express();
 
@@ -29,10 +27,7 @@ app.use('/images', express.static(path.join(__dirname, 'images')));
 app.use(cors());
 
 //using routes
-//
-//
-//
-//
+app.use('/admin',adminroutes)
 
 mongoose.connect(process.env.MONGODB_URL).then((result) => {
     app.listen(process.env.PORT, () => {

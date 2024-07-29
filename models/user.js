@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
+const bookingSchema = require("../models/booking").schema;
 
-exports.user = new mongoose.Schema({
+const userSchema = new mongoose.Schema({
     name: {
         type: String,
         required: true,
@@ -10,7 +11,7 @@ exports.user = new mongoose.Schema({
         required: true,
         unique: true,
     },
-    phone:{
+    phone: {
         type: String,
         required: true
     },
@@ -19,26 +20,26 @@ exports.user = new mongoose.Schema({
         required: true,
     },
     image: {
-        type: string
+        type: String
     },
     role: {
         type: String,
         enum: ['admin', 'customer'],
         default: 'customer'
     },
-    passport:{
+    passport: {
         type: String,
         required: true
     },
-    license:{
+    license: {
         type: String,
         required: true
     },
-    bookings:[bookingSchema.booking]
+    bookings: [bookingSchema] // Correctly reference the bookingSchema
 },
     {
-        timestamps: true,
+        timestamps: true
     }
 );
 
-module.exports = mongoose.model('User', userSchema.user);
+module.exports = mongoose.model('User', userSchema);
