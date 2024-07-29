@@ -34,7 +34,7 @@ const carSchema = new mongoose.Schema({
     },
     powerSystem: {
         type: String,
-        enum: ['Conventional/gas', 'Electric', 'Hybrid']
+        enum: ['Conventional', 'Electric', 'Hybrid']
     },
     seats: {
         type: Number,

@@ -1,15 +1,23 @@
 const express = require('express');
 const router = express.Router();
 
-const carcontroller = require('../controllers/admin');
+const admincontroller = require('../controllers/admin');
 const authing = require('../middlewares/authing');
-const {isAdmin} = require('../middlewares/isadmin');
+const { isAdmin } = require('../middlewares/isadmin');
 const carvalidation = require('../validation/car');
 
-router.post('/cars', authing, isAdmin, carvalidation.requires(), carvalidation.isProduct(), carcontroller.PostCar);
+router.post('/cars', authing, isAdmin, carvalidation.requires(), carvalidation.isProduct(), admincontroller.PostCar);
 
-router.patch('cars/:carId', authing, isAdmin, carvalidation.requires(), carvalidation.isProduct(), carcontroller.updateCar);
+router.get('/booking/:bookingId', authing, isAdmin, admincontroller.getBookingById);
 
-router.delete('cars/:carId', authing, isAdmin, carcontroller.deleteCar);
+router.post('/booking/:bookingId', authing, isAdmin, admincontroller.confirmation);
+
+router.get('/booking/viewall', authing, isAdmin, admincontroller.getAllBookings);
+
+
+
+router.patch('cars/:carId', authing, isAdmin, carvalidation.requires(), carvalidation.isProduct(), admincontroller.updateCar);
+
+router.delete('cars/:carId', authing, isAdmin, admincontroller.deleteCar);
 
 module.exports = router;
