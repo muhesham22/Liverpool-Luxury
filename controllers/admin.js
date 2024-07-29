@@ -1,8 +1,10 @@
+const mongoose = require('mongoose');
 const Car = require('../models/car');
 const User = require('../models/user');
 const Booking = require('../models/booking');
 const { validationResult } = require('express-validator')
 
+//Pushing a new car to the inventory
 exports.PostCar = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -44,6 +46,7 @@ exports.PostCar = async (req, res) => {
     }
 };
 
+//Retrieve all cars 
 exports.getAllCars = async (req, res) => {
     try {
         const cars = await Car.find({});
@@ -54,18 +57,22 @@ exports.getAllCars = async (req, res) => {
     }
 };
 
+//Retreiving a single car 
 exports.getCarById = async (req, res) => {
+    const carId = req.params.carId
     try {
-        const car = await Car.findById(req.params.id);
+        const car = await Car.findById(carId);
         if (!car) {
-            return res.status(404).send();
+            return res.status(404).json({ error: 'Car could not be found' });
         }
-        res.status(200).send(car);
+        res.status(200).json({ car });
     } catch (error) {
-        res.status(500).send(error);
+        console.error(error);
+        res.status(500).json('Internal server error');
     }
 };
 
+//Updating an existing car
 exports.updateCar = async (req, res) => {
     try {
         const carId = req.params.carId;
@@ -104,6 +111,7 @@ exports.updateCar = async (req, res) => {
     }
 };
 
+//delete car
 exports.deleteCar = async (req, res, next) => {
     try {
         const carId = req.params.carId;
@@ -122,15 +130,133 @@ exports.deleteCar = async (req, res, next) => {
     }
 };
 
+//Retrieve all bookings 
 exports.getAllBookings = async (req, res) => {
     try {
-        const bookings = await Booking.find().populate('car').populate('user');
+        const bookings = await Booking.find({}).populate('car').populate('user');
         res.status(200).json({ message: 'All bookings successfully retrived', bookings });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Failed to delete car' });
+        res.status(500).json({ error: 'Failed to retrieve Bookings' });
     }
 };
 
+// View booking details
+exports.getBookingById = async (req, res) => {
+    const bookingId = req.params.bookingId;
+    try {
+        const booking = await Booking.findById(bookingId);
+        if (!booking) return res.status(404).json({ message: 'Booking not found' });
+        res.status(200).json({ message: 'booking retrieved', booking });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Booking retreival failed' });
+    }
+};
+
+
+//Manual booking
+exports.createBooking = async (req, res) => {
+    try {
+        const {
+            car,
+            user,
+            startDate,
+            endDate,
+            total,
+            paymentMethod } = req.body;
+
+        const booking = new Booking({
+            car,
+            user,
+            startDate,
+            endDate,
+            total,
+            paymentMethod
+        });
+
+        await booking.save();
+        res.status(201).json({ message: 'Manual booking completed successfully', booking });
+    } catch (error) {
+        console.error(error);
+        res.status(400).json({ message: 'internal server error' });
+    }
+};
+
+// Update a booking
+exports.updateBooking = async (req, res) => {
+    const bookingId = req.params.bookingId;
+    try {
+        const booking = await Booking.findById({ bookingId }).populate('car').populate('user');
+        if (!booking) {
+            res.status(404).json({ message: 'Invalid input booking not found' })
+        }
+        const status = booking.status;
+        const {
+            car,
+            user,
+            startDate,
+            endDate,
+            total,
+            paymentMethod } = req.body;
+        if (status === 'Upcoming') {
+            booking.car = car || booking.car;
+            booking.user = user || booking.user;
+            booking.startDate = startDate || booking.startDate;
+            booking.endDate = endDate || booking.endDate;
+            booking.brand = brand || booking.brand;
+            booking.total = total || booking.total;
+            booking.paymentMethod = paymentMethod || booking.paymentMethod;
+        }
+        else {
+            res.json({ message: 'Can not update booking unless its upcoming' })
+        }
+        await booking.save();
+        res.status(200).json({ message: 'booking updated', booking });
+    } catch (error) {
+        console.error(error);
+        res.status(400).json({ message: 'Internal server error' });
+    }
+};
+
+
+exports.cancelBooking = async (req, res) => {
+    const bookingId = req.params.bookingId;
+    try {
+        if (!bookingId || !mongoose.Types.ObjectId.isValid(bookingId)) {
+            return res.status(422).json({ error: 'invalid input' });
+        }
+        const booking = await booking.findById(bookingId);
+        if (!booking) {
+            return res.status(404).json({ error: 'booking not found' });
+        }
+        const status = booking.status;
+        if (status === 'Upcoming') {
+            await booking.findByIdAndDelete(bookingId);
+            res.json({ message: 'booking cancelled successfully', booking });
+        }
+        else {
+            res.json({ message: 'Could not cancell booking unless its still upcoming' })
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to cancel booking' });
+    }
+};
+exports.updateBookingStatus = async (req, res) => {
+    const bookingId = req.params.bookingId;
+    try {
+        const booking = await Booking.findById({ bookingId }).populate('car').populate('user');
+        if (!booking){        
+        return res.status(404).json({ message: 'Booking not found' });
+        }
+        booking.status = req.body.status;
+        await booking.save();
+        res.status(200).json({message:'Booking status updated successfully',booking});
+    } catch (error) {
+        console.error(error);
+        res.status(400).json({ message:'Internal server error' });
+    }
+};
 
 

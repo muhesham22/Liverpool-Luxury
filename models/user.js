@@ -24,7 +24,7 @@ exports.user = new mongoose.Schema({
     role: {
         type: String,
         enum: ['admin', 'customer'],
-        default: 'customer',
+        default: 'customer'
     },
     passport:{
         type: String,
