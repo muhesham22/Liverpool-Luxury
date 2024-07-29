@@ -34,7 +34,7 @@ exports.register = async (req, res) => {
     }
 };
 
-exports.login = async (req, res, next) => {
+exports.login = async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -61,7 +61,7 @@ exports.login = async (req, res, next) => {
         );
         res.status(200).json({ token: token, role: loadedUser.role, userId: loadedUser._id.toString() });
     } catch (error) {
-        console.error(error);
+        console.log(error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 };
@@ -79,68 +79,70 @@ exports.viewprofile = async (req, res) => {
     }
 };
 
-const auth = {
-    auth: {
-      api_key: process.env.MG_KEY,
-      domain: process.env.MG_DOMAIN ,
-    }
-  };
+// const auth = {
+//     auth: {
+//       api_key: process.env.MG_KEY,
+//       domain: process.env.MG_DOMAIN ,
+//     }
+//   };
   
-  const transporter = nodemailer.createTransport(mg(auth));
+//   const transporter = nodemailer.createTransport(mg(auth));
   
 
-// Request password reset
-exports.requestPasswordReset = async (req, res) => {
-    const { email } = req.body;
-    try {
-        const user = await User.findOne({ email });
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
+// // Request password reset
+// exports.requestPasswordReset = async (req, res) => {
+//     const { email } = req.body;
+//     try {
+//         const user = await User.findOne({ email });
+//         if (!user) {
+//             return res.status(404).json({ message: 'User not found' });
+//         }
 
-        // Generate reset token
-        const token = crypto.randomBytes(20).toString('hex');
-        user.resetToken = token;
-        user.resetTokenExpiration = Date.now() + 3600000; // 1 hour
-        await user.save();
+//         // Generate reset token
+//         const token = crypto.randomBytes(20).toString('hex');
+//         user.resetToken = token;
+//         user.resetTokenExpiration = Date.now() + 3600000; // 1 hour
+//         await user.save();
 
-        // Send email
-        const mailOptions = {
-            to: user.email,
-            from: 'your-email@example.com',
-            subject: 'Password Reset',
-            text: `You requested a password reset. Click the following link to reset your password: http://localhost:3000/reset/${token}`
-        };
+//         // Send email
+//         const mailOptions = {
+//             to: user.email,
+//             from: 'your-email@example.com',
+//             subject: 'Password Reset',
+//             text: `You requested a password reset. Click the following link to reset your password: http://localhost:3000/reset/${token}`
+//         };
 
-        transporter.sendMail(mailOptions, (err, info) => {
-            if (err) {
-                return res.status(500).json({ message: 'Error sending email' });
-            }
-            res.status(200).json({ message: 'Password reset email sent' });
-        });
-    } catch (err) {
-        res.status(500).json({ message: 'Server error' });
-    }
-};
+//         transporter.sendMail(mailOptions, (err, info) => {
+//             if (err) {
+//                 return res.status(500).json({ message: 'Error sending email' });
+//             }
+//             res.status(200).json({ message: 'Password reset email sent' });
+//         });
+//     } catch (err) {
+//         res.status(500).json({ message: 'Server error' });
+//     }
+// };
 
-// Reset password
-exports.resetPassword = async (req, res) => {
-    const { token, newPassword } = req.body;
-    try {
-        const user = await User.findOne({ resetToken: token, resetTokenExpiration: { $gt: Date.now() } });
-        if (!user) {
-            return res.status(400).json({ message: 'Invalid or expired token' });
-        }
+// // Reset password
+// exports.resetPassword = async (req, res) => {
+//     const { token, newPassword } = req.body;
+//     try {
+//         const user = await User.findOne({ resetToken: token, resetTokenExpiration: { $gt: Date.now() } });
+//         if (!user) {
+//             return res.status(400).json({ message: 'Invalid or expired token' });
+//         }
 
-        const hashedPassword = await bcrypt.hash(newPassword, 12);
-        user.password = hashedPassword;
-        user.resetToken = null;
-        user.resetTokenExpiration = null;
-        await user.save();
+//         const hashedPassword = await bcrypt.hash(newPassword, 12);
+//         user.password = hashedPassword;
+//         user.resetToken = null;
+//         user.resetTokenExpiration = null;
+//         await user.save();
 
-        res.status(200).json({ message: 'Password reset successful' });
-    } catch (err) {
-        res.status(500).json({ message: 'Server error' });
-    }
-};
+//         res.status(200).json({ message: 'Password reset successful' });
+//     } catch (err) {
+//         res.status(500).json({ message: 'Server error' });
+//     }
+// };
+
+
 

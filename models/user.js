@@ -27,12 +27,12 @@ const userSchema = new mongoose.Schema({
         enum: ['admin', 'customer'],
         default: 'customer'
     },
-    passport: {
+    passport: [{
         type: String
-    },
-    license: {
+    }],
+    license: [{
         type: String
-    },
+    }],
     bookings: [bookingSchema] // Correctly reference the bookingSchema
 },
     {

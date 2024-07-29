@@ -247,16 +247,44 @@ exports.updateBookingStatus = async (req, res) => {
     const bookingId = req.params.bookingId;
     try {
         const booking = await Booking.findById({ bookingId }).populate('car').populate('user');
-        if (!booking){        
-        return res.status(404).json({ message: 'Booking not found' });
+        if (!booking) {
+            return res.status(404).json({ message: 'Booking not found' });
+        }
+        if (booking.confirmation !== 'confirmed') {
+            return res.status(400).json({ message: 'Booking not confirmed' })
+        }
+        if (booking.status === 'Cancelled') {
+            booking.confirmation = 'declined'
+            return res.json({message:'Cannot update a cancelled booking'})
         }
         booking.status = req.body.status;
         await booking.save();
-        res.status(200).json({message:'Booking status updated successfully',booking});
+        res.status(200).json({ message: 'Booking status updated successfully', booking });
     } catch (error) {
         console.error(error);
-        res.status(400).json({ message:'Internal server error' });
+        res.status(400).json({ message: 'Internal server error' });
     }
 };
+exports.confirmation = async (req, res) => {
+    try {
+        const { bookingId } = req.params;
+        const booking = await Booking.findById({ bookingId }).populate('car').populate('user');
+        const { response } = req.body;
+        if (response === 'confirmed' || response === 'declined') {
+
+            booking.confirmation = response;
+            if (response === 'declined') {
+                booking.status = 'Cancelled';
+            }
+            res.json({ message: `booking ${response}` })
+        }
+        else {
+            res.status(400).json({ error: 'Bad request' })
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(400).json({ message: 'Internal server error' });
+    }
+}
 
 

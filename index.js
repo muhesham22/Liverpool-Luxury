@@ -13,6 +13,7 @@ require('dotenv').config();
 //requiring routes
 const adminroutes = require('./routes/admin')
 const authroutes = require('./routes/auth')
+const userdocroutes = require('./routes/user')
 
 
 const multerConfig = require('./config/multer');
@@ -30,6 +31,7 @@ app.use(cors());
 //using routes
 app.use('/admin',adminroutes)
 app.use('/auth',authroutes)
+app.use(userdocroutes)
 
 mongoose.connect(process.env.MONGODB_URL).then((result) => {
     app.listen(process.env.PORT, () => {
