@@ -1,12 +1,25 @@
 const { body } = require('express-validator');
+const User = require('../models/user')
 
-exports.isCar = () => {
+exports.isBooking = () => {
     return [
-        body('name')
-            .isLength({ min: 3, max: 512 }).withMessage('Name must be at least 3 characters long')
-            .trim(),
-        body('rentalprice')
-            .isNumeric().withMessage('Price must be numeric'),
+        body('user')
+            .notEmpty().withMessage('Booking must contain a user')
+            .custom(async user => {
+                const user = await User.findById(user);
+                if (!user) {
+                    throw new Error('User not found');
+                }
+            }),
+            body('car')
+            .notEmpty().withMessage('Booking must contain a car')
+            .custom(async carId => {
+                const userId = req.userId;
+                const user = await User.findById(userId);
+                if (!user) {
+                    throw new Error('User not found');
+                }
+            }),
         body('year')
             .isNumeric().withMessage('Model year must be numeric'),
         body('seats')
@@ -18,11 +31,11 @@ exports.isCar = () => {
             .isLength({ min: 3, max: 1024 }).withMessage('Description must be at least 3 characters long')
             .trim(),
         body('type')
-            .isIn(['SUV', 'Sport', 'Sedan','Luxury', 'Economy']).withMessage('Car type must be SUV | Sport | Sedan | Luxury | Economy'),
+            .isIn(['SUV', 'Sport', 'Sedan', 'Luxury', 'Economy']).withMessage('Car type must be SUV | Sport | Sedan | Luxury | Economy'),
         body('transmissionType')
             .isIn(['Manual', 'Automatic']).withMessage('Car transmission type must be manual | automatic'),
         body('powerSystem')
-            .isIn(['Conventional', 'Electric', 'Hybrid']).withMessage('Power system must be Conventional(gas) | Electric | Hybrid')
+            .isIn(['Conventional/gas', 'Electric', 'Hybrid']).withMessage('Power system must be Conventional/gas | Electric | Hybrid')
     ];
 };
 
@@ -45,6 +58,8 @@ exports.requires = () => {
         body('transmissionType')
             .notEmpty().withMessage('Transmission type is required'),
         body('powerSystem')
-            .notEmpty().withMessage('Power system is required')
+            .notEmpty().withMessage('Power system is required'),
+        body('images')
+            .notEmpty().withMessage('images is required'),
     ];
 };

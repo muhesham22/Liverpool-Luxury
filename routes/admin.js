@@ -6,18 +6,25 @@ const authing = require('../middlewares/authing');
 const { isAdmin } = require('../middlewares/isadmin');
 const carvalidation = require('../validation/car');
 
-router.post('/cars', authing, isAdmin, carvalidation.requires(), carvalidation.isProduct(), admincontroller.PostCar);
+router.get('/cars/viewall', admincontroller.getAllCars)
+
+router.get('/cars/:carId', admincontroller.getCarById)
+
+router.post('/cars', authing, isAdmin, carvalidation.requires(), carvalidation.isCar(), admincontroller.PostCar);
+
+router.patch('cars/:carId', authing, isAdmin, carvalidation.requires(), carvalidation.isCar(), admincontroller.updateCar);
+
+router.delete('cars/:carId', authing, isAdmin, admincontroller.deleteCar);
 
 router.get('/booking/:bookingId', authing, isAdmin, admincontroller.getBookingById);
 
-router.post('/booking/:bookingId', authing, isAdmin, admincontroller.confirmation);
-
 router.get('/booking/viewall', authing, isAdmin, admincontroller.getAllBookings);
 
+router.post('/booking' , authing , isAdmin , )
+
+router.post('/booking/:bookingId', authing, isAdmin, admincontroller.confirmation);
 
 
-router.patch('cars/:carId', authing, isAdmin, carvalidation.requires(), carvalidation.isProduct(), admincontroller.updateCar);
 
-router.delete('cars/:carId', authing, isAdmin, admincontroller.deleteCar);
 
 module.exports = router;

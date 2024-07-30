@@ -2,16 +2,16 @@ const mongoose = require('mongoose');
 const Car = require('../models/car');
 const User = require('../models/user');
 const Booking = require('../models/booking');
-const { validationResult } = require('express-validator')
+const { validationResult } = require('express-validator');
+
 
 //Pushing a new car to the inventory
 exports.PostCar = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        clearImage(req.files.path.replace("\\", "/"));
         return res.status(422).json({ error: errors.array()[0].msg });
     }
-    if (!req.files) {
+    if (!req.files || req.files.length === 0) {
         return res.status(422).json({ error: 'Image is required' });
     }
     try {
@@ -26,8 +26,10 @@ exports.PostCar = async (req, res) => {
             powerSystem,
             seats
         } = req.body;
+
+        const images = req.files.map(file => file.path.replace('\\', "/"));
         const car = new Car({
-            images: req.files.path.replace('\\', "/"),
+            images,
             name,
             year,
             brand,
@@ -65,7 +67,7 @@ exports.getCarById = async (req, res) => {
         if (!car) {
             return res.status(404).json({ error: 'Car could not be found' });
         }
-        res.status(200).json({ car });
+        res.status(200).json({message:'Car retrieved successfully', car });
     } catch (error) {
         console.error(error);
         res.status(500).json('Internal server error');
@@ -159,16 +161,22 @@ exports.getBookingById = async (req, res) => {
 exports.createBooking = async (req, res) => {
     try {
         const {
-            car,
-            user,
+            carId,
+            userId,
             startDate,
             endDate,
-            total,
             paymentMethod } = req.body;
+
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            const duration = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+
+            const car = await Car.findById({carId});
+            const total = car.rentalprice * duration ;
 
         const booking = new Booking({
             car,
-            user,
+            user:userId,
             startDate,
             endDate,
             total,
