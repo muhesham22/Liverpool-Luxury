@@ -5,7 +5,7 @@ exports.isCar = () => {
         body('name')
             .isLength({ min: 3, max: 512 }).withMessage('Name must be at least 3 characters long')
             .trim(),
-        body('rentalprice')
+        body('rentalPrice')
             .isNumeric().withMessage('Price must be numeric'),
         body('year')
             .isNumeric().withMessage('Model year must be numeric'),
@@ -16,7 +16,7 @@ exports.isCar = () => {
         body('brand')
             .isLength({ min: 1, max: 256 }).withMessage('Brand must be 1 value')
             .trim(),
-        body('describtion')
+        body('description')
             .isLength({ min: 3, max: 1024 }).withMessage('Description must be at least 3 characters long')
             .trim(),
         body('type')
@@ -32,11 +32,11 @@ exports.requires = () => {
     return [
         body('name')
             .notEmpty().withMessage('Name is required'),
-        body('rentalprice')
+        body('rentalPrice')
             .notEmpty().withMessage('Price is required'),
         body('brand')
             .notEmpty().withMessage('brand is required'),
-        body('describtion')
+        body('description')
             .notEmpty().withMessage('Description is required'),
         body('type')
             .notEmpty().withMessage('type is required'),

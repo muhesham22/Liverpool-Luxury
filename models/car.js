@@ -12,11 +12,11 @@ const carSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
-    rentalprice: {
+    rentalPrice: {
         type: Number,
         required: true
     },
-    describtion: {
+    description: {
         type: String,
         required: true
     },
