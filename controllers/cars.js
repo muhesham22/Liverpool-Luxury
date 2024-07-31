@@ -10,9 +10,9 @@ exports.PostCar = async (req, res) => {
     if (!errors.isEmpty()) {
         return res.status(422).json({ error: errors.array()[0].msg });
     }
-    if (!req.files || req.files.length === 0) {
-        return res.status(422).json({ error: 'Image is required' });
-    }
+    // if (!req.files || req.files.length === 0) {
+    //     return res.status(422).json({ error: 'Image is required' });
+    // }
     try {
         const {
             name,
