@@ -5,25 +5,28 @@ const admincontroller = require('../controllers/admin');
 const authing = require('../middlewares/authing');
 const { isAdmin } = require('../middlewares/isadmin');
 const carvalidation = require('../validation/car');
-//triggering a redeployment
+const bookingvalidation = require('../validation/booking');
 
+//triggering a redeployment
 router.get('/cars/viewall', admincontroller.getAllCars)
 
 router.get('/cars/:carId', admincontroller.getCarById)
 
 router.post('/cars', authing, isAdmin, carvalidation.requires(), carvalidation.isCar(), admincontroller.PostCar);
 
-router.patch('cars/:carId', authing, isAdmin, carvalidation.requires(), carvalidation.isCar(), admincontroller.updateCar);
+router.patch('/cars/:carId', authing, isAdmin, carvalidation.requires(), carvalidation.isCar(), admincontroller.updateCar);
 
-router.delete('cars/:carId', authing, isAdmin, admincontroller.deleteCar);
+router.delete('/cars/:carId', authing, isAdmin, admincontroller.deleteCar);
 
 router.get('/booking/:bookingId', authing, isAdmin, admincontroller.getBookingById);
 
 router.get('/booking/viewall', authing, isAdmin, admincontroller.getAllBookings);
 
-router.post('/booking' , authing , isAdmin , )
+router.post('/booking' , authing , isAdmin , bookingvalidation.isBooking, bookingvalidation.requires ,admincontroller.createBooking)
 
-router.post('/booking/:bookingId', authing, isAdmin, admincontroller.confirmation);
+router.patch('/booking/confirm/:bookingId', authing, isAdmin, admincontroller.confirmation);
+
+router.patch('/booking/status/:bookingId', authing, isAdmin, admincontroller.updateBookingStatus);
 
 
 

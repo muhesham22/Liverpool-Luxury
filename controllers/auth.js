@@ -59,7 +59,7 @@ exports.login = async (req, res) => {
             process.env.JWT_SECRET,
             { expiresIn: process.env.JWT_EXPIRES_IN }
         );
-        res.status(200).json({ token: token, role: loadedUser.role, userId: loadedUser._id.toString() });
+        res.status(200).json({ token: token, role: loadedUser.role, name: loadedUser.name, userId: loadedUser._id.toString() });
     } catch (error) {
         console.log(error);
         res.status(500).json({ error: 'Internal Server Error' });

@@ -90,7 +90,8 @@ exports.updateCar = async (req, res) => {
             describtion,
             transmissionType,
             powerSystem,
-            seats
+            seats,
+            year
         } = req.body;
         const car = await Car.findById(carId);
         if (!car) {

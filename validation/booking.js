@@ -6,60 +6,59 @@ exports.isBooking = () => {
         body('user')
             .notEmpty().withMessage('Booking must contain a user')
             .custom(async user => {
-                const user = await User.findById(user);
-                if (!user) {
+                const theuser = await User.findById(user);
+                if (!theuser) {
                     throw new Error('User not found');
                 }
             }),
             body('car')
             .notEmpty().withMessage('Booking must contain a car')
-            .custom(async carId => {
-                const userId = req.userId;
-                const user = await User.findById(userId);
-                if (!user) {
-                    throw new Error('User not found');
+            .custom(async car => {
+                const thecar = await User.findById(car);
+                if (!thecar) {
+                    throw new Error('Car not found');
                 }
             }),
-        body('year')
-            .isNumeric().withMessage('Model year must be numeric'),
-        body('seats')
-            .isNumeric().withMessage('Car seats must be countable'),
-        body('brand')
-            .isLength({ min: 1, max: 256 }).withMessage('Brand must be 1 value')
-            .trim(),
-        body('describtion')
-            .isLength({ min: 3, max: 1024 }).withMessage('Description must be at least 3 characters long')
-            .trim(),
-        body('type')
-            .isIn(['SUV', 'Sport', 'Sedan', 'Luxury', 'Economy']).withMessage('Car type must be SUV | Sport | Sedan | Luxury | Economy'),
-        body('transmissionType')
-            .isIn(['Manual', 'Automatic']).withMessage('Car transmission type must be manual | automatic'),
-        body('powerSystem')
-            .isIn(['Conventional/gas', 'Electric', 'Hybrid']).withMessage('Power system must be Conventional/gas | Electric | Hybrid')
+            body('startDate')
+            .isISO8601().withMessage('Start date must be a valid date')
+            .toDate()
+            .custom((startDate, { req }) => {
+              const today = new Date();
+              const maxBookingDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 365);
+              if (startDate < today) {
+                throw new Error('Start date cannot be in the past');
+              }
+              if (startDate > maxBookingDate) {
+                throw new Error('Start date cannot be more than 1 year in the future');
+              }
+              return true;
+            }),
+          body('endDate')
+            .isISO8601().withMessage('End date must be a valid date')
+            .toDate()
+            .custom((endDate, { req }) => {
+              const startDate = new Date(req.body.startDate);
+              if (endDate < startDate) {
+                throw new Error('End date cannot be before the start date');
+              }
+              return true;
+            }),
+        body('paymentMethod')
+            .isIn(['cash', 'car']).withMessage('Payment method must be between cash or card')
     ];
 };
 
 exports.requires = () => {
     return [
-        body('name')
+        body('user')
             .notEmpty().withMessage('Name is required'),
-        body('rentalprice')
+        body('car')
             .notEmpty().withMessage('Price is required'),
-        body('brand')
+        body('startDate')
             .notEmpty().withMessage('brand is required'),
-        body('describtion')
+        body('endDate')
             .notEmpty().withMessage('Description is required'),
-        body('type')
-            .notEmpty().withMessage('type is required'),
-        body('seats')
-            .notEmpty().withMessage('seats is required'),
-        body('year')
-            .notEmpty().withMessage('Model year is required'),
-        body('transmissionType')
-            .notEmpty().withMessage('Transmission type is required'),
-        body('powerSystem')
-            .notEmpty().withMessage('Power system is required'),
-        body('images')
-            .notEmpty().withMessage('images is required'),
+        body('paymentMethod')
+            .notEmpty().withMessage('type is required')
     ];
 };

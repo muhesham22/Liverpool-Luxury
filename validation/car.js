@@ -11,6 +11,8 @@ exports.isCar = () => {
             .isNumeric().withMessage('Model year must be numeric'),
         body('seats')
             .isNumeric().withMessage('Car seats must be countable'),
+        body('doors')
+            .isNumeric().withMessage('Car doors must be either 2 or 4'),
         body('brand')
             .isLength({ min: 1, max: 256 }).withMessage('Brand must be 1 value')
             .trim(),
@@ -40,6 +42,8 @@ exports.requires = () => {
             .notEmpty().withMessage('type is required'),
         body('seats')
             .notEmpty().withMessage('seats is required'),
+        body('doors')
+            .notEmpty().withMessage('doors is required'),
         body('year')
             .notEmpty().withMessage('Model year is required'),
         body('transmissionType')

@@ -39,6 +39,10 @@ const carSchema = new mongoose.Schema({
     seats: {
         type: Number,
         required: true
+    },
+    doors: {
+        type: Number,
+        required: true
     }
 })
 
