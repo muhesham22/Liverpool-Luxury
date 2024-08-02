@@ -16,4 +16,8 @@ router.patch('/:carId', authing, isAdmin, carvalidation.requires(), carscontroll
 
 router.delete('/:carId', authing, isAdmin, carscontroller.deleteCar);
 
+router.get('/',carscontroller.search)
+
+router.get('/:keyword',carscontroller.filter)
+
 module.exports = router;

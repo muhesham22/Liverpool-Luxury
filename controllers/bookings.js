@@ -1,12 +1,23 @@
 const mongoose = require('mongoose');
 const Car = require('../models/car');
 const Booking = require('../models/booking');
+const User = require('../models/user');
 const { validationResult } = require('express-validator');
 
 exports.getAllBookings = async (req, res) => {
     try {
-        const bookings = await Booking.find({}).populate('car').populate('user');
-        res.status(200).json({ message: 'All bookings successfully retrived', bookings });
+        const userId = req.userId;
+        const user = await User.findById(userId);
+        let bookings;
+        if (user.role === 'customer') {
+            bookings = await Booking.find(user).populate('car').populate('user');
+            if (user.bookings.length === 0) {
+                res.status(404).json({ message: 'No bookings yet', bookings })
+            }
+        } else {
+            bookings = await Booking.find().populate('car').populate('user');
+            res.status(200).json({ message: 'All bookings successfully retrived', bookings });
+        }
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Failed to retrieve Bookings' });
@@ -24,34 +35,39 @@ exports.getBookingById = async (req, res) => {
         res.status(500).json({ message: 'Booking retreival failed' });
     }
 };
-//Manual booking
+
 exports.createBooking = async (req, res) => {
     try {
+        const userId = req.userId;
+        const { carId } = req.params;
         const {
-            carId,
-            userId,
             startDate,
             endDate,
             paymentMethod } = req.body;
 
-            const start = new Date(startDate);
-            const end = new Date(endDate);
-            const duration = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const duration = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
 
-            const car = await Car.findById({carId});
-            const total = car.rentalPrice * duration ;
+        const car = await Car.findById(carId);
+        const user = await User.findById(userId);
+        const total = car.rentalPrice * duration;
 
         const booking = new Booking({
-            car,
-            user:userId,
+            car: carId,
+            user: userId,
             startDate,
             endDate,
             total,
             paymentMethod
         });
 
+
         await booking.save();
-        res.status(201).json({ message: 'Manual booking completed successfully', booking });
+        user.bookings.push(booking);
+        await user.save();
+
+        res.status(201).json({ message: 'booking completed successfully', booking });
     } catch (error) {
         console.error(error);
         res.status(400).json({ message: 'internal server error' });
@@ -68,18 +84,14 @@ exports.updateBooking = async (req, res) => {
         const status = booking.status;
         const {
             car,
-            user,
             startDate,
             endDate,
-            total,
             paymentMethod } = req.body;
         if (status === 'Upcoming') {
             booking.car = car || booking.car;
-            booking.user = user || booking.user;
             booking.startDate = startDate || booking.startDate;
             booking.endDate = endDate || booking.endDate;
             booking.brand = brand || booking.brand;
-            booking.total = total || booking.total;
             booking.paymentMethod = paymentMethod || booking.paymentMethod;
         }
         else {
@@ -105,7 +117,7 @@ exports.cancelBooking = async (req, res) => {
         }
         const status = booking.status;
         if (status === 'Upcoming') {
-            await booking.findByIdAndDelete(bookingId);
+            await booking.findByIdAndDelete({ bookingId });
             res.json({ message: 'booking cancelled successfully', booking });
         }
         else {
@@ -129,7 +141,7 @@ exports.updateBookingStatus = async (req, res) => {
         }
         if (booking.status === 'Cancelled') {
             booking.confirmation = 'declined'
-            return res.json({message:'Cannot update a cancelled booking'})
+            return res.json({ message: 'Cannot update a cancelled booking' })
         }
         booking.status = req.body.status;
         await booking.save();

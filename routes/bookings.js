@@ -6,11 +6,11 @@ const authing = require('../middlewares/authing');
 const { isAdmin } = require('../middlewares/isadmin');
 const bookingvalidation = require('../validation/booking');
 
-router.get('/:bookingId', authing, isAdmin, bookingcontroller.getBookingById);
+router.get('booking/:bookingId', authing, bookingcontroller.getBookingById);
 
-router.get('/viewall', authing, isAdmin, bookingcontroller.getAllBookings);
+router.get('/viewall', authing, bookingcontroller.getAllBookings);
 
-router.post('/' , authing , bookingvalidation.isBooking, bookingvalidation.requires ,bookingcontroller.createBooking)
+router.post('/:carId' , authing , bookingvalidation.isBooking(), bookingvalidation.requires() ,bookingcontroller.createBooking)
 
 router.patch('/confirm/:bookingId', authing, isAdmin, bookingcontroller.confirmation);
 
