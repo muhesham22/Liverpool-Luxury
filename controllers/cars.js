@@ -193,36 +193,59 @@ exports.search = async (req, res) => {
 
 exports.filter = async (req, res) => {
     try {
-        const keyword = req.params.keyword || '';
-        const filterConditions = [
-            { name: { $regex: keyword, $options: 'i' } },
-            { description: { $regex: keyword, $options: 'i' } },
-            { brand: { $regex: keyword, $options: 'i' } },
-            { type: { $regex: keyword, $options: 'i' } },
-            { transmissionType: { $regex: keyword, $options: 'i' } },
-            { powerSystem: { $regex: keyword, $options: 'i' } }
-        ];
-
-        // Check if keyword is a valid number
-        if (!isNaN(keyword)) {
-            const numberKeyword = Number(keyword);
-            filterConditions.push(
-                { year: numberKeyword },
-                { seats: numberKeyword },
-                { rentalPrice: numberKeyword },
-                { doors: numberKeyword }
-            );
+        const filterConditions = [];
+        const {
+            name,
+            brand,
+            type,
+            transmissionType,
+            powerSystem,
+            year,
+            rentalPrice,
+            seats,
+            doors
+        } = req.query;
+        if (name) {
+            filterConditions.push({ name: { $regex:name , $options: 'i' } })
+        }
+        if (brand) {
+            filterConditions.push({ brand: { $regex:brand , $options: 'i' } })
+        }
+        if (type) {
+            filterConditions.push({ type: { $regex: type, $options: 'i' } })
+        }
+        if (transmissionType) {
+            filterConditions.push({ transmissionType: { $regex: transmissionType, $options: 'i' } })
+        }
+        if (powerSystem) {
+            filterConditions.push({ powerSystem: { $regex: powerSystem, $options: 'i' } })
+        }
+        if (year && Number.isInteger(parseInt(year))) {
+            filterConditions.push( {year:parseInt(year)}  )
+        }
+        if (rentalPrice && Number.isInteger(parseInt(rentalPrice))) {
+            filterConditions.push({ rentalPrice:parseInt(rentalPrice) })
+        }
+        if (seats && Number.isInteger(parseInt(seats)) ) {
+            filterConditions.push({ seats:parseInt(seats) })
+        }
+        if (doors && Number.isInteger(parseInt(doors))) {
+            filterConditions.push({ doors:parseInt(doors)})
         }
 
+        if (filterConditions.length === 0) {
+            return res.json({ message: 'No cars found', cars: [] });
+        }
         const results = await Car.find({
-            $or: filterConditions,
+            $and: filterConditions,
         });
 
+
         if (results.length === 0) {
-            return res.json({ message: 'No cars found', keyword, cars: [] });
+            return res.json({ message: 'No cars found', cars: [] });
         }
 
-        res.json({ message: 'Cars fetched successfully', keyword, cars: results });
+        res.json({ message: 'Cars fetched successfully', cars: results });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Internal Server Error' });

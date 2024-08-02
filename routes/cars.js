@@ -8,6 +8,8 @@ const carvalidation = require('../validation/car');
 
 router.get('/viewall', carscontroller.getAllCars)
 
+router.get('/filter',carscontroller.filter)
+
 router.get('/:carId', carscontroller.getCarById)
 
 router.post('/', authing, isAdmin, carvalidation.requires(), carvalidation.isCar(), carscontroller.PostCar);
@@ -18,6 +20,5 @@ router.delete('/:carId', authing, isAdmin, carscontroller.deleteCar);
 
 router.get('/',carscontroller.search)
 
-router.get('/:keyword',carscontroller.filter)
 
 module.exports = router;

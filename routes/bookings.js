@@ -6,7 +6,7 @@ const authing = require('../middlewares/authing');
 const { isAdmin } = require('../middlewares/isadmin');
 const bookingvalidation = require('../validation/booking');
 
-router.get('booking/:bookingId', authing, bookingcontroller.getBookingById);
+router.get('/booking/:bookingId', bookingcontroller.getBookingById);
 
 router.get('/viewall', authing, bookingcontroller.getAllBookings);
 
