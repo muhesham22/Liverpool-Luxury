@@ -10,14 +10,14 @@ exports.getAllBookings = async (req, res) => {
         const user = await User.findById(userId);
         let bookings;
         if (user.role === 'customer') {
-            bookings = await Booking.find({user:userId});
+            bookings = await Booking.find({user:userId}).populate('car');
             if (!bookings) {
                 res.status(404).json({ message: 'No bookings yet', bookings })
             }else{
                 res.status(200).json({ message: 'user bookings retreived', bookings })
             }
         } else {
-            bookings = await Booking.find();
+            bookings = await Booking.find().populate('car');
             res.status(200).json({ message: 'All bookings successfully retrived', bookings });
         }
     } catch (error) {
@@ -29,7 +29,7 @@ exports.getAllBookings = async (req, res) => {
 exports.getBookingById = async (req, res) => {
     const bookingId = req.params.bookingId;
     try {
-        const booking = await Booking.findById(bookingId);
+        const booking = await Booking.findById(bookingId).populate('car');
         if (!booking) return res.status(404).json({ message: 'Booking not found' });
         res.status(200).json({ message: 'booking retrieved', booking });
     } catch (error) {
