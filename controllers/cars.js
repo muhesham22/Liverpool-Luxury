@@ -203,13 +203,19 @@ exports.filter = async (req, res) => {
             year,
             rentalPrice,
             seats,
-            doors
+            doors,
+            startDate,
+            endDate
         } = req.query;
+
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+
         if (name) {
-            filterConditions.push({ name: { $regex:name , $options: 'i' } })
+            filterConditions.push({ name: { $regex: name, $options: 'i' } })
         }
         if (brand) {
-            filterConditions.push({ brand: { $regex:brand , $options: 'i' } })
+            filterConditions.push({ brand: { $regex: brand, $options: 'i' } })
         }
         if (type) {
             filterConditions.push({ type: { $regex: type, $options: 'i' } })
@@ -221,21 +227,23 @@ exports.filter = async (req, res) => {
             filterConditions.push({ powerSystem: { $regex: powerSystem, $options: 'i' } })
         }
         if (year && Number.isInteger(parseInt(year))) {
-            filterConditions.push( {year:parseInt(year)}  )
+            filterConditions.push({ year: parseInt(year) })
         }
         if (rentalPrice && Number.isInteger(parseInt(rentalPrice))) {
-            filterConditions.push({ rentalPrice:parseInt(rentalPrice) })
+            filterConditions.push({ rentalPrice: parseInt(rentalPrice) })
         }
-        if (seats && Number.isInteger(parseInt(seats)) ) {
-            filterConditions.push({ seats:parseInt(seats) })
+        if (seats && Number.isInteger(parseInt(seats))) {
+            filterConditions.push({ seats: parseInt(seats) })
         }
         if (doors && Number.isInteger(parseInt(doors))) {
-            filterConditions.push({ doors:parseInt(doors)})
+            filterConditions.push({ doors: parseInt(doors) })
         }
 
         if (filterConditions.length === 0) {
             return res.json({ message: 'No cars found', cars: [] });
         }
+        
+
         const results = await Car.find({
             $and: filterConditions,
         });

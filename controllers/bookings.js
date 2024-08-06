@@ -49,6 +49,32 @@ exports.createBooking = async (req, res) => {
 
         const start = new Date(startDate);
         const end = new Date(endDate);
+
+        const overlappingBookings = await Booking.find({
+            car:carId ,
+            $or: [
+              {
+                startDate: { $lt: end },
+                endDate: { $gt: start },
+              },
+              {
+                startDate: { $lt: end },
+                endDate: { $gte: end },
+              },
+              {
+                startDate: { $lte: start },
+                endDate: { $gt: start },
+              },
+            ],
+          });
+      
+          if (overlappingBookings.length > 0) {
+            return res.status(409).json({ message: 'The car is already booked for the selected dates' });
+          }
+
+        console.log(overlappingBookings);
+        
+      
         const duration = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
 
         const car = await Car.findById(carId);
