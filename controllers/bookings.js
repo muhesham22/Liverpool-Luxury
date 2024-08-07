@@ -10,10 +10,10 @@ exports.getAllBookings = async (req, res) => {
         const user = await User.findById(userId);
         let bookings;
         if (user.role === 'customer') {
-            bookings = await Booking.find({user:userId}).populate('car');
+            bookings = await Booking.find({ user: userId }).populate('car');
             if (!bookings) {
                 res.status(404).json({ message: 'No bookings yet', bookings })
-            }else{
+            } else {
                 res.status(200).json({ message: 'user bookings retreived', bookings })
             }
         } else {
@@ -45,36 +45,39 @@ exports.createBooking = async (req, res) => {
         const {
             startDate,
             endDate,
-            paymentMethod } = req.body;
+            paymentMethod,
+            chauffeur,
+            delivery
+        } = req.body;
 
         const start = new Date(startDate);
         const end = new Date(endDate);
 
         const overlappingBookings = await Booking.find({
-            car:carId ,
+            car: carId,
             $or: [
-              {
-                startDate: { $lt: end },
-                endDate: { $gt: start },
-              },
-              {
-                startDate: { $lt: end },
-                endDate: { $gte: end },
-              },
-              {
-                startDate: { $lte: start },
-                endDate: { $gt: start },
-              },
+                {
+                    startDate: { $lt: end },
+                    endDate: { $gt: start },
+                },
+                {
+                    startDate: { $lt: end },
+                    endDate: { $gte: end },
+                },
+                {
+                    startDate: { $lte: start },
+                    endDate: { $gt: start },
+                },
             ],
-          });
-      
-          if (overlappingBookings.length > 0) {
+        });
+
+        if (overlappingBookings.length > 0) {
             return res.status(409).json({ message: 'The car is already booked for the selected dates' });
-          }
+        }
 
         console.log(overlappingBookings);
-        
-      
+
+
         const duration = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
 
         const car = await Car.findById(carId);
@@ -87,7 +90,9 @@ exports.createBooking = async (req, res) => {
             startDate,
             endDate,
             total,
-            paymentMethod
+            paymentMethod,
+            chauffeur,
+            delivery
         });
 
 

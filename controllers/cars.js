@@ -242,8 +242,6 @@ exports.filter = async (req, res) => {
         if (filterConditions.length === 0) {
             return res.json({ message: 'No cars found', cars: [] });
         }
-        
-
         const results = await Car.find({
             $and: filterConditions,
         });

@@ -26,6 +26,17 @@ const bookingSchema = new mongoose.Schema({
     documents: [
         String
     ],
+    delivery: {
+        type: Boolean,
+        default: false
+    },
+    address: {
+        type: String
+    },
+    chauffeur: {
+        type: Boolean,
+        default: false
+    },
     paymentMethod: {
         type: String,
         enum: ['Cash', 'Card']
