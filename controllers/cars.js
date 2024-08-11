@@ -208,44 +208,74 @@ exports.filter = async (req, res) => {
             endDate
         } = req.query;
 
+        // Convert startDate and endDate to Date objects
         const start = new Date(startDate);
         const end = new Date(endDate);
 
+        // Build the filter conditions based on query parameters
         if (name) {
-            filterConditions.push({ name: { $regex: name, $options: 'i' } })
+            filterConditions.push({ name: { $regex: name, $options: 'i' } });
         }
         if (brand) {
-            filterConditions.push({ brand: { $regex: brand, $options: 'i' } })
+            filterConditions.push({ brand: { $regex: brand, $options: 'i' } });
         }
         if (type) {
-            filterConditions.push({ type: { $regex: type, $options: 'i' } })
+            filterConditions.push({ type: { $regex: type, $options: 'i' } });
         }
         if (transmissionType) {
-            filterConditions.push({ transmissionType: { $regex: transmissionType, $options: 'i' } })
+            filterConditions.push({ transmissionType: { $regex: transmissionType, $options: 'i' } });
         }
         if (powerSystem) {
-            filterConditions.push({ powerSystem: { $regex: powerSystem, $options: 'i' } })
+            filterConditions.push({ powerSystem: { $regex: powerSystem, $options: 'i' } });
         }
         if (year && Number.isInteger(parseInt(year))) {
-            filterConditions.push({ year: parseInt(year) })
+            filterConditions.push({ year: parseInt(year) });
         }
         if (rentalPrice && Number.isInteger(parseInt(rentalPrice))) {
-            filterConditions.push({ rentalPrice: parseInt(rentalPrice) })
+            filterConditions.push({ rentalPrice: parseInt(rentalPrice) });
         }
         if (seats && Number.isInteger(parseInt(seats))) {
-            filterConditions.push({ seats: parseInt(seats) })
+            filterConditions.push({ seats: parseInt(seats) });
         }
         if (doors && Number.isInteger(parseInt(doors))) {
-            filterConditions.push({ doors: parseInt(doors) })
+            filterConditions.push({ doors: parseInt(doors) });
+        }
+
+        // Find cars that are booked during the specified date range
+        let bookedCars = [];
+        if (startDate && endDate) {
+            bookedCars = await Booking.find({
+                $or: [
+                    {
+                        startDate: { $lt: end },
+                        endDate: { $gt: start },
+                    },
+                    {
+                        startDate: { $lt: end },
+                        endDate: { $gte: end },
+                    },
+                    {
+                        startDate: { $lte: start },
+                        endDate: { $gt: start },
+                    },
+                ]
+            }).select('car'); // Only select the car field to get the booked car IDs
+        }
+
+        const bookedCarIds = bookedCars.map(booking => booking.car);
+
+        // Exclude booked cars from the filter conditions
+        if (bookedCarIds.length > 0) {
+            filterConditions.push({ _id: { $nin: bookedCarIds } });
         }
 
         if (filterConditions.length === 0) {
             return res.json({ message: 'No cars found', cars: [] });
         }
+
         const results = await Car.find({
             $and: filterConditions,
         });
-
 
         if (results.length === 0) {
             return res.json({ message: 'No cars found', cars: [] });

@@ -3,7 +3,9 @@ const jwt = require('jsonwebtoken');
 module.exports = (req, res, next) => {
     const authHeader = req.get('Authorization');
     if (!authHeader) {
-        return res.status(403).json({ error: 'Not Authorized. Token not sent' });
+        req.userId = null;
+        req.userRole = 'guest';
+        return next();
     }
     const token = authHeader.split(' ')[1];
     let decodedToken;

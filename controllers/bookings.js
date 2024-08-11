@@ -40,19 +40,27 @@ exports.getBookingById = async (req, res) => {
 
 exports.createBooking = async (req, res) => {
     try {
-        const userId = req.userId;
+        const userId = req.userId; // userId will be null if the user is a guest
         const { carId } = req.params;
         const {
             startDate,
             endDate,
             paymentMethod,
             chauffeur,
-            delivery
+            delivery,
+            guestName,    // Include these fields in the request body for guests
+            guestEmail,   // Include these fields in the request body for guests
+            guestPhone,   // Include these fields in the request body for guests
+            district,
+            street,
+            building,
+            floor     // Include the address object in the request body
         } = req.body;
 
         const start = new Date(startDate);
         const end = new Date(endDate);
 
+        // Check for overlapping bookings
         const overlappingBookings = await Booking.find({
             car: carId,
             $or: [
@@ -75,37 +83,68 @@ exports.createBooking = async (req, res) => {
             return res.status(409).json({ message: 'The car is already booked for the selected dates' });
         }
 
-        console.log(overlappingBookings);
-
-
+        // Calculate the duration and total cost
         const duration = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
-
         const car = await Car.findById(carId);
-        const user = await User.findById(userId);
         const total = car.rentalPrice * duration;
 
+        // Initialize documents array
+        let documents = [];
+
+        // If the user is authenticated, add their license and passport to documents
+        if (userId) {
+            const user = await User.findById(userId);
+            if (user.license) {
+                documents.push(user.license);
+            }
+            if (user.passport) {
+                documents.push(user.passport);
+            }
+        }
+
+        // Create a new booking, including guest details if userId is null
         const booking = new Booking({
             car: carId,
-            user: userId,
+            user: userId, // This will be null for guests
             startDate,
             endDate,
             total,
             paymentMethod,
             chauffeur,
-            delivery
+            delivery,
+            address: {
+                district: district,
+                street: street,
+                building: building,
+                floor: floor  // Store the address provided in the request
+            },
+            documents, // Add the documents array
+            guestInfo: userId ? null : {     // Store guest info only if the user is a guest
+                name: guestName,
+                email: guestEmail,
+                phone: guestPhone
+            }
         });
 
-
+        // Save the booking
         await booking.save();
-        user.bookings.push(booking);
-        await user.save();
 
-        res.status(201).json({ message: 'booking completed successfully', booking });
+        // If the user is authenticated, add the booking to their record
+        if (userId) {
+            const user = await User.findById(userId);
+            user.bookings.push(booking);
+            await user.save();
+        }
+
+        res.status(201).json({ message: 'Booking completed successfully', booking });
     } catch (error) {
         console.error(error);
-        res.status(400).json({ message: 'internal server error' });
+        res.status(400).json({ message: 'Internal server error' });
     }
 };
+
+
+
 // Update a booking
 exports.updateBooking = async (req, res) => {
     const bookingId = req.params.bookingId;
@@ -142,19 +181,21 @@ exports.cancelBooking = async (req, res) => {
     const bookingId = req.params.bookingId;
     try {
         if (!bookingId || !mongoose.Types.ObjectId.isValid(bookingId)) {
-            return res.status(422).json({ error: 'invalid input' });
+            return res.status(422).json({ error: 'Invalid input' });
         }
-        const booking = await booking.findById(bookingId);
+        const booking = await Booking.findById(bookingId);
         if (!booking) {
-            return res.status(404).json({ error: 'booking not found' });
+            return res.status(404).json({ error: 'Booking not found' });
         }
-        const status = booking.status;
-        if (status === 'Upcoming') {
-            await booking.findByIdAndDelete({ bookingId });
-            res.json({ message: 'booking cancelled successfully', booking });
-        }
-        else {
-            res.json({ message: 'Could not cancell booking unless its still upcoming' })
+        if (booking.status === 'Upcoming') {
+            booking.status = 'Cancelled'; // Update the status
+            booking.confirmation = 'declined'
+            await booking.save(); // Save the updated booking
+            res.json({ message: 'Booking cancelled successfully', booking });
+        } else if (booking.status === 'Cancelled') {
+            res.json({ message: 'Booking already cancelled' });
+        } else {
+            res.status(400).json({ message: 'Cannot cancel booking unless it is still upcoming' });
         }
     } catch (error) {
         console.error(error);
@@ -165,7 +206,7 @@ exports.cancelBooking = async (req, res) => {
 exports.updateBookingStatus = async (req, res) => {
     const bookingId = req.params.bookingId;
     try {
-        const booking = await Booking.findById({ bookingId }).populate('car').populate('user');
+        const booking = await Booking.findById(bookingId).populate('car');
         if (!booking) {
             return res.status(404).json({ message: 'Booking not found' });
         }
@@ -188,7 +229,7 @@ exports.updateBookingStatus = async (req, res) => {
 exports.confirmation = async (req, res) => {
     try {
         const { bookingId } = req.params;
-        const booking = await Booking.findById({ bookingId }).populate('car').populate('user');
+        const booking = await Booking.findById(bookingId).populate('car').populate('user');
         const { response } = req.body;
         if (response === 'confirmed' || response === 'declined') {
 
@@ -201,6 +242,7 @@ exports.confirmation = async (req, res) => {
         else {
             res.status(400).json({ error: 'Bad request' })
         }
+        await booking.save();
     } catch (error) {
         console.error(error);
         res.status(400).json({ message: 'Internal server error' });

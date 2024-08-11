@@ -9,7 +9,18 @@ const bookingSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: true,
+    },
+    guestInfo: {
+        name: {
+            type: String,
+        },
+        email: {
+            type: String,
+            unique: true
+        },
+        phone: {
+            type: String,
+        }
     },
     startDate: {
         type: Date,
@@ -31,7 +42,10 @@ const bookingSchema = new mongoose.Schema({
         default: false
     },
     address: {
-        type: String
+        district: { type: String },
+        street: { type: String },
+        building: { type: String },
+        floor: { type: Number }
     },
     chauffeur: {
         type: Boolean,
