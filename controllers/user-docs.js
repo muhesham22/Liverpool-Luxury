@@ -1,43 +1,64 @@
-const User = require('../models/user')
-const Booking = require('../models/booking')
+const User = require('../models/user');
+const Booking = require('../models/booking');
 const mongoose = require('mongoose');
-const booking = require('../models/booking');
 
 exports.manageDocs = async (req, res) => {
     try {
         const userId = req.userId;
-        const user = await User.findById(userId);
         const { type, bookingId } = req.query;
-        const booking = await Booking.findById(bookingId)
-        const files = req.files.map(file => {
-            return file.path.replace("\\", "/");
-        });
+        const files = req.files.map(file => file.path.replace("\\", "/"));
+
         if (files.length < 1) {
-            return res.status(404).json({ error: 'Documents could not be found' })
+            return res.status(400).json({ error: 'No documents uploaded' });
         }
-        if (type === 'profile' && user && mongoose.Types.ObjectId.isValid(carId)) {
-            user.image = files[0];
+
+        console.log('User ID:', userId); // Debugging
+        console.log('Booking ID:', bookingId); // Debugging
+
+        if (userId) { // If user is authenticated
+            const user = await User.findById(userId);
+
+            if (!user) {
+                return res.status(404).json({ error: 'User not found' });
+            }
+
+            if (type === 'profile') {
+                user.image = files[0]; // Save profile image
+                await user.save();
+                return res.json({ message: 'Profile image uploaded successfully' });
+            } else if (type === 'passport') {
+                user.passport = [...(user.passport || []), ...files]; // Append files to user passport
+                await user.save();
+                return res.json({ message: 'Passport documents uploaded successfully' });
+            } else if (type === 'license') {
+                user.license = [...(user.license || []), ...files]; // Append files to user license
+                await user.save();
+                return res.json({ message: 'License documents uploaded successfully' });
+            } else {
+                return res.status(400).json({ error: 'Invalid document type' });
+            }
+        } else { // If user is not authenticated (guest)
+            if (!bookingId) {
+                return res.status(400).json({ error: 'Booking ID is required for guests' });
+            }
+
+            const booking = await Booking.findById(bookingId);
+
+            if (!booking) {
+                return res.status(404).json({ error: 'Booking not found' });
+            }
+
+            if (type === 'passport' || type === 'license') {
+                booking.documents.push(...files); // Add files to booking documents
+                await booking.save();
+                return res.json({ message: 'Documents uploaded successfully' });
+            } else {
+                return res.status(400).json({ error: 'Invalid document type for guest' });
+            }
         }
-        else if (type === 'passport') {
-            if(booking){
-                booking.documents.push(files);
-            }
-            if (user) {
-                user.passport = files;
-            }
-        }
-        else if (type === 'license') {
-            if(booking){
-                booking.documents.push(files);
-            }
-            if (user) {
-                user.license = files;
-            }
-        }
-        res.json({ message: 'Documents uploaded successfully' })
-        console.log(files);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Internal server error' })
+        res.status(500).json({ error: 'Internal server error' });
     }
 };
+

@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const userDocsController = require('../controllers/user-docs')
+const userDocsController = require('../controllers/user-docs');
+const authing = require('../middlewares/authing');
 
-router.patch('/documents',userDocsController.manageDocs)
+
+router.patch('/documents',authing ,userDocsController.manageDocs)
 
 module.exports = router;
