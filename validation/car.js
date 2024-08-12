@@ -20,7 +20,7 @@ exports.isCar = () => {
             .isLength({ min: 3, max: 1024 }).withMessage('Description must be at least 3 characters long')
             .trim(),
         body('type')
-            .isIn(['SUV', 'Sport', 'Sedan','Luxury', 'Economy']).withMessage('Car type must be SUV | Sport | Sedan | Luxury | Economy'),
+            .isIn(['SUV', 'Sport', 'Sedan','Luxury', 'Economy','Super']).withMessage('Car type must be SUV | Sport | Sedan | Luxury | Economy | Super'),
         body('transmissionType')
             .isIn(['Manual', 'Automatic']).withMessage('Car transmission type must be manual | automatic'),
         body('powerSystem')

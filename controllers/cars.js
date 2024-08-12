@@ -1,5 +1,3 @@
-const fs = require('fs');
-const path = require('path');
 const mongoose = require('mongoose');
 const Car = require('../models/car');
 const { validationResult } = require('express-validator');

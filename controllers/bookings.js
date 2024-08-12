@@ -29,7 +29,7 @@ exports.getAllBookings = async (req, res) => {
 exports.getBookingById = async (req, res) => {
     const bookingId = req.params.bookingId;
     try {
-        const booking = await Booking.findById(bookingId).populate('car');
+        const booking = await Booking.findById(bookingId).populate('car').populate('user');
         if (!booking) return res.status(404).json({ message: 'Booking not found' });
         res.status(200).json({ message: 'booking retrieved', booking });
     } catch (error) {
@@ -231,8 +231,11 @@ exports.confirmation = async (req, res) => {
         const { bookingId } = req.params;
         const booking = await Booking.findById(bookingId).populate('car').populate('user');
         const { response } = req.body;
-        if (response === 'confirmed' || response === 'declined') {
 
+        if (response === 'confirmed' || response === 'declined') {
+            if (booking.status === 'Cancelled' && response === 'confirmed') {
+                return res.status(400).json({ error: 'Cannot confrim a cancelled booking' })
+            }
             booking.confirmation = response;
             if (response === 'declined') {
                 booking.status = 'Cancelled';
