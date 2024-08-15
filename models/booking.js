@@ -15,8 +15,7 @@ const bookingSchema = new mongoose.Schema({
             type: String,
         },
         email: {
-            type: String,
-            unique: true
+            type: String
         },
         phone: {
             type: String,

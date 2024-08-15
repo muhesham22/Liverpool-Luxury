@@ -48,13 +48,8 @@ exports.createBooking = async (req, res) => {
             paymentMethod,
             chauffeur,
             delivery,
-            guestName,    // Include these fields in the request body for guests
-            guestEmail,   // Include these fields in the request body for guests
-            guestPhone,   // Include these fields in the request body for guests
-            district,
-            street,
-            building,
-            floor     // Include the address object in the request body
+            guestInfo,   // Include these fields in the request body for guests
+            address     // Include the address object in the request body
         } = req.body;
 
         const start = new Date(startDate);
@@ -112,18 +107,9 @@ exports.createBooking = async (req, res) => {
             paymentMethod,
             chauffeur,
             delivery,
-            address: {
-                district: district,
-                street: street,
-                building: building,
-                floor: floor  // Store the address provided in the request
-            },
+            address,
             documents, // Add the documents array
-            guestInfo: userId ? null : {     // Store guest info only if the user is a guest
-                name: guestName,
-                email: guestEmail,
-                phone: guestPhone
-            }
+            guestInfo: userId ? null : guestInfo
         });
 
         // Save the booking
@@ -139,7 +125,7 @@ exports.createBooking = async (req, res) => {
         res.status(201).json({ message: 'Booking completed successfully', booking });
     } catch (error) {
         console.error(error);
-        res.status(400).json({ message: 'Internal server error' });
+        res.status(400).json({ message: 'Internal server error' , error});
     }
 };
 

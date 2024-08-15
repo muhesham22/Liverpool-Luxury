@@ -187,8 +187,6 @@ exports.search = async (req, res) => {
     }
 };
 
-
-
 exports.filter = async (req, res) => {
     try {
         const filterConditions = [];
@@ -207,8 +205,12 @@ exports.filter = async (req, res) => {
         } = req.query;
 
         // Convert startDate and endDate to Date objects
-        const start = new Date(startDate);
-        const end = new Date(endDate);
+        const start = startDate ? new Date(startDate) : null;
+        const end = endDate ? new Date(endDate) : null;
+
+        console.log('Start Date:', start);
+        console.log('End Date:', end);
+
 
         // Build the filter conditions based on query parameters
         if (name) {
@@ -241,24 +243,17 @@ exports.filter = async (req, res) => {
 
         // Find cars that are booked during the specified date range
         let bookedCars = [];
-        if (startDate && endDate) {
+        if (start && end) {
             bookedCars = await Booking.find({
+                car: { $exists: true },
                 $or: [
-                    {
-                        startDate: { $lt: end },
-                        endDate: { $gt: start },
-                    },
-                    {
-                        startDate: { $lt: end },
-                        endDate: { $gte: end },
-                    },
-                    {
-                        startDate: { $lte: start },
-                        endDate: { $gt: start },
-                    },
+                    { startDate: { $lt: end }, endDate: { $gt: start } },
+                    { startDate: { $lt: end }, endDate: { $gte: end } },
+                    { startDate: { $lte: start }, endDate: { $gt: start } }
                 ]
-            }).select('car'); // Only select the car field to get the booked car IDs
+            }).select('car');
         }
+        
 
         const bookedCarIds = bookedCars.map(booking => booking.car);
 
@@ -268,6 +263,8 @@ exports.filter = async (req, res) => {
         }
 
         if (filterConditions.length === 0) {
+
+            console.log('Filter Conditions:', filterConditions);
             return res.json({ message: 'No cars found', cars: [] });
         }
 
@@ -275,11 +272,13 @@ exports.filter = async (req, res) => {
             $and: filterConditions,
         });
 
+
         if (results.length === 0) {
             return res.json({ message: 'No cars found', cars: [] });
         }
 
-        res.json({ message: 'Cars fetched successfully', cars: results });
+
+        res.json({ message: 'Cars fetched successfully', cars: results, filterConditions });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Internal Server Error' });
