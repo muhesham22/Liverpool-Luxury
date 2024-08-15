@@ -89,11 +89,16 @@ exports.createBooking = async (req, res) => {
         // If the user is authenticated, add their license and passport to documents
         if (userId) {
             const user = await User.findById(userId);
-            if (user.license) {
+            if (user.license.length > 0) {
+                console.log(user.license);
                 documents.push(user.license);
+                console.log(documents);
+
             }
-            if (user.passport) {
+            if (user.passport.length > 0) {
+                console.log(user.license);
                 documents.push(user.passport);
+                console.log(documents);
             }
         }
 
@@ -125,7 +130,7 @@ exports.createBooking = async (req, res) => {
         res.status(201).json({ message: 'Booking completed successfully', booking });
     } catch (error) {
         console.error(error);
-        res.status(400).json({ message: 'Internal server error' , error});
+        res.status(400).json({ message: 'Internal server error', error });
     }
 };
 
