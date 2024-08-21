@@ -11,5 +11,7 @@ router.post('/login', authValidation.login(), authController.login);
 
 router.get('/myprofile', authing, authController.viewprofile);
 
+router.patch('/myprofile/edit', authing, authController.updateUserInfo);
+
 
 module.exports = router;

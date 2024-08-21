@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const Car = require('../models/car');
 const Booking = require('../models/booking');
 const User = require('../models/user');
+const schedule = require('node-schedule');
 const { validationResult } = require('express-validator');
 
 exports.getAllBookings = async (req, res) => {
@@ -210,6 +211,24 @@ exports.updateBookingStatus = async (req, res) => {
         }
         booking.status = req.body.status;
         await booking.save();
+        if (booking.status === 'Upcoming') {
+            schedule.scheduleJob(booking.startDate, async () => {
+                const updatedBooking = await Booking.findById(booking._id);
+                if (updatedBooking && updatedBooking.status === 'Upcoming') {
+                    updatedBooking.status = 'Ongoing';
+                    await updatedBooking.save();
+                }
+            });
+        }
+        if (booking.status === 'Ongoing') {
+            schedule.scheduleJob(booking.endDate, async () => {
+                const updatedBooking = await Booking.findById(booking._id);
+                if (updatedBooking && updatedBooking.status === 'Ongoing') {
+                    updatedBooking.status = 'Completed';
+                    await updatedBooking.save();
+                }
+            });
+        }
         res.status(200).json({ message: 'Booking status updated successfully', booking });
     } catch (error) {
         console.error(error);

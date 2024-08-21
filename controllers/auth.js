@@ -78,6 +78,32 @@ exports.viewprofile = async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 };
+exports.updateUserInfo = async (req,res)=>{
+    const userId = req.userId;
+    try {
+        if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(422).json({ error: 'Invalid iput' });
+        }
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        const {
+            name,
+            email,
+            phone,
+                }= req.body;
+        user.name = name || user.name;
+        user.email = email || user.email;
+        user.phone = phone || user.phone;
+        await user.save();
+        res.json({ message: 'user updated successfully', user });
+        
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' ,error});
+    }
+}
 
 // const auth = {
 //     auth: {
