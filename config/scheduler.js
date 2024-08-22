@@ -12,8 +12,8 @@ const scheduleBookingEvents = (booking) => {
     if (startJob) startJob.cancel();
     if (endJob) endJob.cancel();
 
-    // Schedule job to update status to 'Ongoing' at start date
-    if (startDate > new Date()) {
+    // Schedule job to update status to 'Ongoing' at start date, only if the booking is confirmed
+    if (booking.confirmation === 'confirmed' && startDate > new Date()) {
         schedule.scheduleJob(`${booking._id}-start`, startDate, async () => {
             try {
                 const updatedBooking = await Booking.findById(booking._id);
@@ -26,7 +26,7 @@ const scheduleBookingEvents = (booking) => {
                 console.error(`Error updating booking ${booking._id} status to 'Ongoing':`, error);
             }
         });
-    } else {
+    } else if (booking.confirmation === 'confirmed') {
         // If the start date has already passed, immediately set to 'Ongoing'
         booking.status = 'Ongoing';
         booking.save().catch(err => console.error('Error updating booking status to Ongoing:', err));
