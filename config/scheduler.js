@@ -4,14 +4,7 @@ const Booking = require('../models/booking');
 const scheduleBookingEvents = (booking) => {
     const startDate = booking.startDate;
     const endDate = booking.endDate;
-
-    // Cancel any existing jobs for this booking
-    const startJob = schedule.scheduledJobs[`${booking._id}-start`];
-    const endJob = schedule.scheduledJobs[`${booking._id}-end`];
     
-    if (startJob) startJob.cancel();
-    if (endJob) endJob.cancel();
-
     // Schedule job to update status to 'Ongoing' at start date, only if the booking is confirmed
     if (booking.confirmation === 'confirmed' && startDate > new Date()) {
         schedule.scheduleJob(`${booking._id}-start`, startDate, async () => {
