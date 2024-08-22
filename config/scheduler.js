@@ -4,16 +4,16 @@ const Booking = require('../models/booking');
 const updateBookingStatuses = async () => {
     try {
         const now = new Date();
-        
-        // Update 'Upcoming' bookings to 'Ongoing' if their start date has arrived
+
+        // Update 'Upcoming' bookings to 'Ongoing' if their start date has arrived and they are not canceled
         const ongoingBookings = await Booking.updateMany(
-            { status: 'Upcoming', startDate: { $lte: now } },
+            { status: 'Upcoming', startDate: { $lte: now }, status: { $ne: 'Cancelled' } },
             { $set: { status: 'Ongoing' } }
         );
 
-        // Update 'Ongoing' bookings to 'Completed' if their end date has passed
+        // Update 'Ongoing' bookings to 'Completed' if their end date has passed and they are not canceled
         const completedBookings = await Booking.updateMany(
-            { status: 'Ongoing', endDate: { $lte: now } },
+            { status: 'Ongoing', endDate: { $lte: now }, status: { $ne: 'Cancelled' } },
             { $set: { status: 'Completed' } }
         );
 

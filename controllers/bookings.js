@@ -127,9 +127,6 @@ exports.createBooking = async (req, res) => {
             user.bookings.push(booking);
             await user.save();
         }
-
-        scheduleBookingEvents(booking);
-
         res.status(201).json({ message: 'Booking completed successfully', booking });
     } catch (error) {
         console.error(error);
@@ -183,13 +180,6 @@ exports.cancelBooking = async (req, res) => {
             booking.status = 'Cancelled'; 
             booking.confirmation = 'declined'
             await booking.save(); 
-
-            const startJob = schedule.scheduledJobs[`${booking._id}-start`];
-            const endJob = schedule.scheduledJobs[`${booking._id}-end`];
-
-            if (startJob) startJob.cancel();
-            if (endJob) endJob.cancel();
-
             res.json({ message: 'Booking cancelled successfully', booking });
         } else if (booking.status === 'Cancelled') {
             res.json({ message: 'Booking already cancelled' });
