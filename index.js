@@ -6,7 +6,6 @@ const helmet = require('helmet');
 const cors = require('cors');
 const mongoose = require("mongoose");
 const multer = require('multer');
-const startScheduler = require('./config/scheduler');
 const { v4: uuidv4 } = require('uuid');
 require('dotenv').config();
 
@@ -44,7 +43,6 @@ app.use(userdocroutes)
 mongoose.connect(process.env.MONGODB_URL).then((result) => {
     app.listen(process.env.PORT, () => {
         console.log('App listening on port', process.env.PORT);
-        startScheduler();
     });
 }).catch((err) => {
     console.log(err);
