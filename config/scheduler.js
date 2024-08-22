@@ -1,32 +1,56 @@
 const schedule = require('node-schedule');
 const Booking = require('../models/booking');
 
-const updateBookingStatuses = async () => {
-    try {
-        const now = new Date();
-        
-        // Update 'Upcoming' bookings to 'Ongoing' if their start date has arrived
-        const ongoingBookings = await Booking.updateMany(
-            { status: 'Upcoming', startDate: { $lte: now } },
-            { $set: { status: 'Ongoing' } }
-        );
+const scheduleBookingEvents = (booking) => {
+    const startDate = booking.startDate;
+    const endDate = booking.endDate;
 
-        // Update 'Ongoing' bookings to 'Completed' if their end date has passed
-        const completedBookings = await Booking.updateMany(
-            { status: 'Ongoing', endDate: { $lte: now } },
-            { $set: { status: 'Completed' } }
-        );
+    // Cancel any existing jobs for this booking
+    const startJob = schedule.scheduledJobs[`${booking._id}-start`];
+    const endJob = schedule.scheduledJobs[`${booking._id}-end`];
+    
+    if (startJob) startJob.cancel();
+    if (endJob) endJob.cancel();
 
-        console.log(`${ongoingBookings.nModified} bookings set to 'Ongoing'`);
-        console.log(`${completedBookings.nModified} bookings set to 'Completed'`);
-    } catch (error) {
-        console.error('Error updating booking statuses:', error);
+    // Schedule job to update status to 'Ongoing' at start date
+    if (startDate > new Date()) {
+        schedule.scheduleJob(`${booking._id}-start`, startDate, async () => {
+            try {
+                const updatedBooking = await Booking.findById(booking._id);
+                if (updatedBooking && updatedBooking.status === 'Upcoming') {
+                    updatedBooking.status = 'Ongoing';
+                    await updatedBooking.save();
+                    console.log(`Booking ${updatedBooking._id} status updated to 'Ongoing'`);
+                }
+            } catch (error) {
+                console.error(`Error updating booking ${booking._id} status to 'Ongoing':`, error);
+            }
+        });
+    } else {
+        // If the start date has already passed, immediately set to 'Ongoing'
+        booking.status = 'Ongoing';
+        booking.save().catch(err => console.error('Error updating booking status to Ongoing:', err));
+    }
+
+    // Schedule job to update status to 'Completed' at end date
+    if (endDate > new Date()) {
+        schedule.scheduleJob(`${booking._id}-end`, endDate, async () => {
+            try {
+                const updatedBooking = await Booking.findById(booking._id);
+                if (updatedBooking && updatedBooking.status === 'Ongoing') {
+                    updatedBooking.status = 'Completed';
+                    await updatedBooking.save();
+                    console.log(`Booking ${updatedBooking._id} status updated to 'Completed'`);
+                }
+            } catch (error) {
+                console.error(`Error updating booking ${booking._id} status to 'Completed':`, error);
+            }
+        });
+    } else {
+        // If the end date has already passed, immediately set to 'Completed'
+        booking.status = 'Completed';
+        booking.save().catch(err => console.error('Error updating booking status to Completed:', err));
     }
 };
 
-// Schedule the job to run every hour
-const startScheduler = () => {
-    schedule.scheduleJob('0 * * * *', updateBookingStatuses); // Runs at the start of every hour
-};
-
-module.exports = startScheduler;
+module.exports = scheduleBookingEvents;

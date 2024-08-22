@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Car = require('../models/car');
 const Booking = require('../models/booking');
 const User = require('../models/user');
-const schedule = require('node-schedule');
+const scheduleBookingEvents = require('../config/scheduler');
 const { validationResult } = require('express-validator');
 
 exports.getAllBookings = async (req, res) => {
@@ -128,6 +128,8 @@ exports.createBooking = async (req, res) => {
             await user.save();
         }
 
+        scheduleBookingEvents(booking);
+
         res.status(201).json({ message: 'Booking completed successfully', booking });
     } catch (error) {
         console.error(error);
@@ -195,46 +197,46 @@ exports.cancelBooking = async (req, res) => {
     }
 };
 //update booking status
-exports.updateBookingStatus = async (req, res) => {
-    const bookingId = req.params.bookingId;
-    try {
-        const booking = await Booking.findById(bookingId).populate('car');
-        if (!booking) {
-            return res.status(404).json({ message: 'Booking not found' });
-        }
-        if (booking.confirmation !== 'confirmed') {
-            return res.status(400).json({ message: 'Booking not confirmed' })
-        }
-        if (booking.status === 'Cancelled') {
-            booking.confirmation = 'declined'
-            return res.json({ message: 'Cannot update a cancelled booking' })
-        }
-        booking.status = req.body.status;
-        await booking.save();
-        if (booking.status === 'Upcoming') {
-            schedule.scheduleJob(booking.startDate, async () => {
-                const updatedBooking = await Booking.findById(booking._id);
-                if (updatedBooking && updatedBooking.status === 'Upcoming') {
-                    updatedBooking.status = 'Ongoing';
-                    await updatedBooking.save();
-                }
-            });
-        }
-        if (booking.status === 'Ongoing') {
-            schedule.scheduleJob(booking.endDate, async () => {
-                const updatedBooking = await Booking.findById(booking._id);
-                if (updatedBooking && updatedBooking.status === 'Ongoing') {
-                    updatedBooking.status = 'Completed';
-                    await updatedBooking.save();
-                }
-            });
-        }
-        res.status(200).json({ message: 'Booking status updated successfully', booking });
-    } catch (error) {
-        console.error(error);
-        res.status(400).json({ message: 'Internal server error' });
-    }
-};
+// exports.updateBookingStatus = async (req, res) => {
+//     const bookingId = req.params.bookingId;
+//     try {
+//         const booking = await Booking.findById(bookingId).populate('car');
+//         if (!booking) {
+//             return res.status(404).json({ message: 'Booking not found' });
+//         }
+//         if (booking.confirmation !== 'confirmed') {
+//             return res.status(400).json({ message: 'Booking not confirmed' })
+//         }
+//         if (booking.status === 'Cancelled') {
+//             booking.confirmation = 'declined'
+//             return res.json({ message: 'Cannot update a cancelled booking' })
+//         }
+//         booking.status = req.body.status;
+//         await booking.save();
+//         if (booking.status === 'Upcoming') {
+//             schedule.scheduleJob(booking.startDate, async () => {
+//                 const updatedBooking = await Booking.findById(booking._id);
+//                 if (updatedBooking && updatedBooking.status === 'Upcoming') {
+//                     updatedBooking.status = 'Ongoing';
+//                     await updatedBooking.save();
+//                 }
+//             });
+//         }
+//         if (booking.status === 'Ongoing') {
+//             schedule.scheduleJob(booking.endDate, async () => {
+//                 const updatedBooking = await Booking.findById(booking._id);
+//                 if (updatedBooking && updatedBooking.status === 'Ongoing') {
+//                     updatedBooking.status = 'Completed';
+//                     await updatedBooking.save();
+//                 }
+//             });
+//         }
+//         res.status(200).json({ message: 'Booking status updated successfully', booking });
+//     } catch (error) {
+//         console.error(error);
+//         res.status(400).json({ message: 'Internal server error' });
+//     }
+// };
 //confirm booking
 exports.confirmation = async (req, res) => {
     try {
