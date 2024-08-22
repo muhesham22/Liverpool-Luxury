@@ -1,5 +1,4 @@
 const path = require('path');
-
 const express = require("express");
 const bp = require("body-parser");
 const helmet = require('helmet');
