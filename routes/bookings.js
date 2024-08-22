@@ -14,7 +14,7 @@ router.post('/:carId' , authing , bookingvalidation.isBooking(), bookingvalidati
 
 router.patch('/confirm/:bookingId', authing, isAdmin, bookingcontroller.confirmation);
 
-router.patch('/status/:bookingId', authing, isAdmin, bookingcontroller.updateBookingStatus);
+// router.patch('/status/:bookingId', authing, isAdmin, bookingcontroller.updateBookingStatus);
 
 router.delete('/:bookingId', authing, bookingcontroller.cancelBooking);
 

@@ -137,39 +137,37 @@ exports.createBooking = async (req, res) => {
     }
 };
 
-
-
 // Update a booking
-exports.updateBooking = async (req, res) => {
-    const bookingId = req.params.bookingId;
-    try {
-        const booking = await Booking.findById({ bookingId }).populate('car').populate('user');
-        if (!booking) {
-            res.status(404).json({ message: 'Invalid input booking not found' })
-        }
-        const status = booking.status;
-        const {
-            car,
-            startDate,
-            endDate,
-            paymentMethod } = req.body;
-        if (status === 'Upcoming') {
-            booking.car = car || booking.car;
-            booking.startDate = startDate || booking.startDate;
-            booking.endDate = endDate || booking.endDate;
-            booking.brand = brand || booking.brand;
-            booking.paymentMethod = paymentMethod || booking.paymentMethod;
-        }
-        else {
-            res.json({ message: 'Can not update booking unless its upcoming' })
-        }
-        await booking.save();
-        res.status(200).json({ message: 'booking updated', booking });
-    } catch (error) {
-        console.error(error);
-        res.status(400).json({ message: 'Internal server error' });
-    }
-};
+// exports.updateBooking = async (req, res) => {
+//     const bookingId = req.params.bookingId;
+//     try {
+//         const booking = await Booking.findById({ bookingId }).populate('car').populate('user');
+//         if (!booking) {
+//             res.status(404).json({ message: 'Invalid input booking not found' })
+//         }
+//         const status = booking.status;
+//         const {
+//             car,
+//             startDate,
+//             endDate,
+//             paymentMethod } = req.body;
+//         if (status === 'Upcoming') {
+//             booking.car = car || booking.car;
+//             booking.startDate = startDate || booking.startDate;
+//             booking.endDate = endDate || booking.endDate;
+//             booking.brand = brand || booking.brand;
+//             booking.paymentMethod = paymentMethod || booking.paymentMethod;
+//         }
+//         else {
+//             res.json({ message: 'Can not update booking unless its upcoming' })
+//         }
+//         await booking.save();
+//         res.status(200).json({ message: 'booking updated', booking });
+//     } catch (error) {
+//         console.error(error);
+//         res.status(400).json({ message: 'Internal server error' });
+//     }
+// };
 //cancelbooking
 exports.cancelBooking = async (req, res) => {
     const bookingId = req.params.bookingId;
@@ -182,9 +180,16 @@ exports.cancelBooking = async (req, res) => {
             return res.status(404).json({ error: 'Booking not found' });
         }
         if (booking.status === 'Upcoming') {
-            booking.status = 'Cancelled'; // Update the status
+            booking.status = 'Cancelled'; 
             booking.confirmation = 'declined'
-            await booking.save(); // Save the updated booking
+            await booking.save(); 
+
+            const startJob = schedule.scheduledJobs[`${booking._id}-start`];
+            const endJob = schedule.scheduledJobs[`${booking._id}-end`];
+
+            if (startJob) startJob.cancel();
+            if (endJob) endJob.cancel();
+
             res.json({ message: 'Booking cancelled successfully', booking });
         } else if (booking.status === 'Cancelled') {
             res.json({ message: 'Booking already cancelled' });
