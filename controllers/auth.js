@@ -7,11 +7,11 @@ const mg = require('nodemailer-sendgrid-transport');
 const { validationResult } = require('express-validator');
 
 exports.register = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
     try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(422).json({ error: errors.array()[0].msg });
-        }
         const { name, email, password, phone } = req.body;
         // const image = req.files.path.replace("\\", "/");
         // const passport = req.files.path.replace("\\", "/");
@@ -35,11 +35,11 @@ exports.register = async (req, res) => {
 };
 
 exports.login = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
     try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(422).json({ error: errors.array()[0].msg });
-        }
         const { email, password } = req.body;
         let loadedUser;
         const user = await User.findOne({ email: email })

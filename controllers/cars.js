@@ -6,7 +6,7 @@ const Booking = require('../models/booking');
 exports.PostCar = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return res.status(422).json({ error: errors.array()[0].msg });
+        return res.status(400).json({ errors: errors.array() });
     }
     // if (!req.files || req.files.length === 0) {
     //     return res.status(422).json({ error: 'Image is required' });
@@ -84,6 +84,10 @@ exports.getCarById = async (req, res) => {
 
 //Updating an existing car
 exports.updateCar = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
     try {
         const carId = req.params.carId;
         if (!carId || !mongoose.Types.ObjectId.isValid(carId)) {
