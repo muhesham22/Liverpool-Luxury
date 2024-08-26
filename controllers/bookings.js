@@ -40,6 +40,10 @@ exports.getBookingById = async (req, res) => {
 };
 
 exports.createBooking = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
     try {
         const userId = req.userId; // userId will be null if the user is a guest
         const { carId } = req.params;
@@ -49,8 +53,8 @@ exports.createBooking = async (req, res) => {
             paymentMethod,
             chauffeur,
             delivery,
-            guestInfo,   // Include these fields in the request body for guests
-            address     // Include the address object in the request body
+            guestInfo, // Expect this in the request body for guests
+            address    // Include the address object in the request body
         } = req.body;
 
         const start = new Date(startDate);
@@ -91,15 +95,10 @@ exports.createBooking = async (req, res) => {
         if (userId) {
             const user = await User.findById(userId);
             if (user.license.length > 0) {
-                console.log(user.license);
                 documents.push(user.license);
-                console.log(documents);
-
             }
             if (user.passport.length > 0) {
-                console.log(user.license);
                 documents.push(user.passport);
-                console.log(documents);
             }
         }
 
@@ -115,7 +114,7 @@ exports.createBooking = async (req, res) => {
             delivery,
             address,
             documents, // Add the documents array
-            guestInfo: userId ? null : guestInfo
+            guestInfo: userId ? null : guestInfo // Set guestInfo only if the user is a guest
         });
 
         // Save the booking
@@ -133,6 +132,7 @@ exports.createBooking = async (req, res) => {
         res.status(400).json({ message: 'Internal server error', error });
     }
 };
+
 
 // Update a booking
 // exports.updateBooking = async (req, res) => {
@@ -177,9 +177,9 @@ exports.cancelBooking = async (req, res) => {
             return res.status(404).json({ error: 'Booking not found' });
         }
         if (booking.status === 'Upcoming') {
-            booking.status = 'Cancelled'; 
+            booking.status = 'Cancelled';
             booking.confirmation = 'declined'
-            await booking.save(); 
+            await booking.save();
             res.json({ message: 'Booking cancelled successfully', booking });
         } else if (booking.status === 'Cancelled') {
             res.json({ message: 'Booking already cancelled' });
