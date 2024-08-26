@@ -4,6 +4,8 @@ const userDocsController = require('../controllers/user-docs');
 const authing = require('../middlewares/authing');
 
 
-router.patch('/documents',authing ,userDocsController.manageDocs)
+router.patch('/documents',authing ,userDocsController.patchDocs)
+
+router.delete('/documents',authing ,userDocsController.deleteDocs)
 
 module.exports = router;
