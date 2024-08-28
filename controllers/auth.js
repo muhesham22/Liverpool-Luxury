@@ -94,7 +94,7 @@ exports.updateUserInfo = async (req,res)=>{
             phone,
                 }= req.body;
         user.name = name || user.name;
-        user.email = email || user.email;
+        // user.email = email || user.email;
         user.phone = phone || user.phone;
         await user.save();
         res.json({ message: 'user updated successfully', user });
