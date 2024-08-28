@@ -2,8 +2,7 @@ const User = require('../models/user');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
-const nodemailer = require('nodemailer');
-const mg = require('nodemailer-sendgrid-transport');
+const mongoose = require("mongoose")
 const { validationResult } = require('express-validator');
 
 exports.register = async (req, res) => {
