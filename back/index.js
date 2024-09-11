@@ -5,6 +5,7 @@ const helmet = require('helmet');
 const cors = require('cors');
 const mongoose = require("mongoose");
 const multer = require('multer');
+const compression = require('compression');
 const startScheduler = require('./config/scheduler');
 const { v4: uuidv4 } = require('uuid');
 require('dotenv').config();
@@ -24,6 +25,7 @@ const multerConfig = require('./config/multer');
 const app = express();
 
 app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
+app.use(compression());
 app.use(bp.json());
 app.use(multer({
     storage: multerConfig.fileStorage, fileFilter: multerConfig.fileFilter
