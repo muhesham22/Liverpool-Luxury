@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background-color: #f7f7f7;
+}
+@font-face {
+  font-family: "Sansation";
+  src: url("/fonts/Sansation_Bold.woff2") format("woff2"),
+    url("/fonts/Sansation_Bold.ttf") format("truetype")
+    url('/fonts/Sansation_Regular.woff2') format('woff2'),
+       url('/fonts/Sansation_Regular.ttf') format('truetype');
+  font-display: swap;
+}
+
+
+body,
+main {
+  background-color: var(--background-color);
+  min-height: 100vh;
+  margin: 0;
+}
+
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Hide the default number input arrows */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0; /* Optional - if you want to remove the margin as well */
+}
+.hide-scrollbar {
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+  scrollbar-width: none; /* Firefox */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Safari and Chrome */
+}
+
+* {
+  font-family: "Sansation", sans-serif;
+  color: headlines;
+  @apply select-none;
+  @apply m-0;
+}
+
+button,
+input,
+select {
+  @apply outline-none;
+}
